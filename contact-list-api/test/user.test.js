@@ -75,4 +75,24 @@ test('Should login existing user', async () => {
     expect(token).toBe(user.tokens[0].token)
 })
 
+test('Should not login an unexisting user', async () => {
+    await request(app)
+        .post('/users/login')
+        .send({
+            email: 'email1@test.com',
+            password: 'asdasd!32'
+        })
+        .expect(400)
+})
+
+test('Should not login with wrong password', async () => {
+    await request(app)
+        .post('/users/login')
+        .send({
+            email: userOne.email,
+            password: 'asdasdawe2131'
+        })
+        .expect(400)
+})
+
 

@@ -28,7 +28,6 @@ router.post('/users/login', async (req, resp) => {
         await user.save()
         resp.send({ user, token })
     } catch (e) {
-        console.log('printig error mesage', e)
         resp.status(400).send({error: e.message})
     }
 })

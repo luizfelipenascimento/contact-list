@@ -2,6 +2,8 @@ const request = require('supertest')
 const bcrypt = require('bcryptjs')
 const app = require('../src/app')
 const User = require('../src/model/user')
+const jwt = require('jsonwebtoken')
+const {JWT_TOKEN} = process.env
 
 const {setupDatabase, userOne, userTwo} = require('./fixtures/db')
 
@@ -95,4 +97,67 @@ test('Should not login with wrong password', async () => {
         .expect(400)
 })
 
+test('should not get profile unauthenticated', async () => {
+    await request(app)
+        .get('/users/me')
+        .expect(401)
+})
+
+test('Should not get profile with invalid token', async () => {
+    await request(app)
+        .get('/users/me')
+        .set('Authorization', 'Bearer asdasdaiojwoiejqmdqoiwjeui')
+        .expect(401)
+})
+
+test('Should not get profile with not registered token', async () => {
+    await request(app)
+        .get('/users/me')
+        .set('Authorization', 'Bearer ' + jwt.sign({_id: userTwo.id}, JWT_TOKEN))
+        .expect(401)
+})
+
+test('Should get profile for user', async () => {
+    const response = await request(app)
+        .get('/users/me')
+        .set('Authorization', 'Bearer ' + userTwo.tokens[0].token)
+        .expect(200)
+    
+    const userProfile = response.body
+    const user = await User.findById(userProfile._id)
+
+    expect(userProfile).not.toBe(undefined)
+    expect(JSON.stringify(userProfile)).toEqual(JSON.stringify(user))
+})
+
+test('Should login and get access to authorized services', async() => {
+    const response = await request(app)
+        .post('/users/login')
+        .send({
+            email: userOne.email,
+            password: 'test123456!'
+        })
+        .expect(200)
+    
+    const token = response.body.token
+    
+    const user = await User.findOne({_id: response.body.user._id, 'tokens.token': token})
+    
+    expect(user.tokens[0].token).toBe(token)
+
+    expect(token).not.toBe(undefined)
+    
+    await request(app)
+        .get('/users/me')
+        .set('Authorization', 'Bearer ' + token)
+        .expect(200)
+})
+
+test('User Should add a new contact', async () => {
+
+})
+
+test('User Should not add a new contact unauthenticated', async () => {
+
+})
 

@@ -1,6 +1,7 @@
 
 const express = require('express')
 const jwt = require('jsonwebtoken')
+const auth = require('../middleware/auth')
 const User = require('../model/user')
 
 
@@ -22,7 +23,7 @@ router.post('/users/login', async (req, resp) => {
     try {
         const {password, email} = req.body
         const user = await User.findByCredentials(email, password)
-        const token = await jwt.sign({ _id: user._id}, JWT_TOKEN)
+        const token = jwt.sign({ _id: user._id}, JWT_TOKEN)
         
         user.tokens.push({token})
         await user.save()
@@ -30,6 +31,10 @@ router.post('/users/login', async (req, resp) => {
     } catch (e) {
         resp.status(400).send({error: e.message})
     }
+})
+
+router.get('/users/me', auth, async (req, resp) => {
+    resp.send(req.user)
 })
 
 module.exports = router

@@ -154,7 +154,30 @@ test('Should login and get access to authorized services', async() => {
 })
 
 test('User Should add a new contact', async () => {
+    
+    const {name, birthday, email} = userOne
+    const newContact = {
+        name,
+        birthday: new Date(birthday),
+        email
+    }
 
+    await request(app)
+        .post('/me/new-contact')
+        .set('Authorization', 'Bearer ' + userTwo.tokens[0].token)
+        .send(newContact)
+        .expect(201)
+
+    const user = await User.findById(userTwo._id)
+
+    expect(user.contacts[0]).not.toBe(undefined)
+    
+    expect(newContact).toStrictEqual({
+        name: user.contacts[0].name, 
+        email: user.contacts[0].email, 
+        birthday: user.contacts[0].birthday
+    })
+    
 })
 
 test('User Should not add a new contact unauthenticated', async () => {

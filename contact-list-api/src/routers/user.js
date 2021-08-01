@@ -37,4 +37,19 @@ router.get('/users/me', auth, async (req, resp) => {
     resp.send(req.user)
 })
 
+router.post('/me/new-contact', auth, async (req, resp) => {
+    try {
+        const {user} = req
+        const newContact = {...req.body}
+
+        user.contacts.push(newContact)
+        await user.save()
+
+        resp.sendStatus(201)
+    } catch (e) {
+        console.log(e)
+        resp.sendStatus(400)
+    } 
+})
+
 module.exports = router

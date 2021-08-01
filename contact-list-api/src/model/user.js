@@ -45,6 +45,30 @@ const userSchema = new mongoose.Schema({
         }
     }],
 
+    contacts: [
+        {
+            name: {
+                type: String,
+                required: true,
+                trim: true
+            },
+
+            birthday: {
+                type: Date,
+            },
+        
+            email: {
+                type: String,
+                trim: true,
+                validate(value) {
+                    if (!validator.isEmail(value)) {
+                        throw new Error('This email is not valid!')
+                    }
+                }
+            }
+        }
+    ],
+
     tokens: [{
         token: {
             type: String,

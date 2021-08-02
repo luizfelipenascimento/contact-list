@@ -181,6 +181,16 @@ test('User Should add a new contact', async () => {
 })
 
 test('User Should not add a new contact unauthenticated', async () => {
+    const {name, birthday, email} = userOne
+    const newContact = {
+        name,
+        birthday: new Date(birthday),
+        email
+    }
 
+    await request(app)
+        .post('/me/new-contact')
+        .send(newContact)
+        .expect(401)
 })
 

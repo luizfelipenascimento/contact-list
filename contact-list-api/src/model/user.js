@@ -47,6 +47,12 @@ const userSchema = new mongoose.Schema({
 
     contacts: [
         {
+            _id: mongoose.Schema.Types.ObjectId
+        }
+    ],
+
+    contacts_unregistered: [
+        {
             name: {
                 type: String,
                 required: true,
@@ -65,9 +71,17 @@ const userSchema = new mongoose.Schema({
                         throw new Error('This email is not valid!')
                     }
                 }
+            },
+
+            image: {
+                type: Buffer
             }
         }
     ],
+
+    avatar: {
+        type: Buffer 
+    },
 
     tokens: [{
         token: {

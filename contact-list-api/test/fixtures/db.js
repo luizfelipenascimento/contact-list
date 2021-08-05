@@ -25,6 +25,7 @@ const userTwo = {
 }
 
 const userThree = {
+    _id: new mongoose.Types.ObjectId(),
     password: 'test123456!',
     birthday: '1990-01-01',
     email: 'junlay@test.com',

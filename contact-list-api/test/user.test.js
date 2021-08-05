@@ -5,7 +5,7 @@ const User = require('../src/model/user')
 const jwt = require('jsonwebtoken')
 const {JWT_TOKEN} = process.env
 
-const {setupDatabase, userOne, userTwo} = require('./fixtures/db')
+const {setupDatabase, userOne, userTwo, userThree} = require('./fixtures/db')
 
 let userData
 
@@ -15,7 +15,7 @@ beforeEach(async () => {
         name: 'luiz felipe',
         birthday: new Date(1995,1, 26),
         password: 'lf00023!',
-        email: 'luiz@test.com'
+        email: 'luizfelipesilva@test.com'
     }
 })
 
@@ -117,6 +117,14 @@ test('Should not get profile with not registered token', async () => {
         .expect(401)
 })
 
+// test('Should upload avatar image', async () => {
+//     const response = await request(app)
+//         .post('/users/me/avatar')
+//         .set('Authorization', `Bearer ${userTwo.tokens[0].token}`)
+//         .attach('avatar', 'test/fixtures/profile-pic.jpg')
+//         .expect(200)
+// })
+
 test('Should get profile for user', async () => {
     const response = await request(app)
         .get('/users/me')
@@ -153,31 +161,46 @@ test('Should login and get access to authorized services', async() => {
         .expect(200)
 })
 
-test('User Should add a new contact', async () => {
+test('User Should add a new unregistered contact', async () => {
     
-    const {name, birthday, email} = userOne
     const newContact = {
-        name,
-        birthday: new Date(birthday),
-        email
+        name: 'teste123' ,
+        birthday: new Date('2021-02-01'),
+        email: 'teste123@email.com'
     }
 
     await request(app)
-        .post('/me/new-contact')
+        .post('/users/me/contact')
         .set('Authorization', 'Bearer ' + userTwo.tokens[0].token)
         .send(newContact)
         .expect(201)
 
     const user = await User.findById(userTwo._id)
 
-    expect(user.contacts[0]).not.toBe(undefined)
+    const savedContact = user.contacts_unregistered[0]
+
+    expect(savedContact).not.toBe(undefined)
     
     expect(newContact).toStrictEqual({
-        name: user.contacts[0].name, 
-        email: user.contacts[0].email, 
-        birthday: user.contacts[0].birthday
+        name: savedContact.name, 
+        email: savedContact.email, 
+        birthday: savedContact.birthday
     })
     
+})
+
+test('Should add a registered user as new contact', async () => {
+    await request(app)
+        .post('/users/me/contact')
+        .send(userThree)
+        .set('Authorization', `Bearer ${userTwo.tokens[0].token}`)
+        .expect(201)
+    
+    const user = await User.findById(userTwo._id)
+
+    console.log('expected: ', userThree._id, ' received', user.contacts[0]._id)
+
+    expect(userThree._id).toStrictEqual(user.contacts[0]._id)
 })
 
 test('User Should not add a new contact unauthenticated', async () => {
@@ -189,8 +212,7 @@ test('User Should not add a new contact unauthenticated', async () => {
     }
 
     await request(app)
-        .post('/me/new-contact')
+        .post('/users/me/contact')
         .send(newContact)
         .expect(401)
 })
-

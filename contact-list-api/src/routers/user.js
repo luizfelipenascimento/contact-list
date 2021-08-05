@@ -37,19 +37,30 @@ router.get('/users/me', auth, async (req, resp) => {
     resp.send(req.user)
 })
 
-router.post('/me/new-contact', auth, async (req, resp) => {
+router.post('/users/me/contact', auth, async (req, resp) => {
     try {
         const {user} = req
         const newContact = {...req.body}
 
-        user.contacts.push(newContact)
+        const registeredContact = await User.findOne({ email: newContact.email}) 
+        
+
+        if (registeredContact) {
+            user.contacts.push(registeredContact._id)            
+        } else {
+            user.contacts_unregistered.push(newContact)
+        }
+
         await user.save()
 
         resp.sendStatus(201)
     } catch (e) {
-        console.log(e)
         resp.sendStatus(400)
     } 
+})
+
+router.post('/users/me/avatar', auth, async (req, resp) => {
+    
 })
 
 module.exports = router
